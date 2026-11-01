@@ -1,0 +1,437 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Những địa điểm lịch sử quanh Hồ Gươm</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    background: #170d0b;
+}
+
+button {
+    font-family: inherit;
+}
+
+/* ===== CÁC MÀN HÌNH ===== */
+
+.screen {
+    position: fixed;
+    inset: 0;
+    display: none;
+    overflow: hidden;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* ===== MÀN HÌNH VIDEO MỞ ĐẦU ===== */
+
+#intro {
+    align-items: center;
+    justify-content: center;
+    padding: 35px;
+    background: #170d0b;
+}
+
+/* ẢNH PNG NỀN DO BẠN TỰ THIẾT KẾ */
+.intro-background {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+}
+
+/* KHUNG VIDEO */
+.video-frame {
+    position: relative;
+    z-index: 2;
+    width: min(100%, 1000px);
+    aspect-ratio: 16 / 9;
+    flex-shrink: 0;
+    background: #111;
+}
+
+#introVideo {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border: 0;
+}
+
+/* ===== HAI Ô LỰA CHỌN ===== */
+
+.menu-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.menu-overlay.active {
+    display: flex;
+}
+
+/* LỚP TỐI BÊN TRONG VIDEO */
+.menu-shade {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.58);
+    z-index: 1;
+    cursor: pointer;
+}
+
+.menu-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: clamp(24px, 9vw, 100px);
+}
+
+.choice {
+    width: min(34%, 300px);
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #fff1bd;
+    text-align: center;
+    cursor: pointer;
+}
+
+.choice img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border: 2px solid #fff0b4;
+    transition: transform .2s, box-shadow .2s;
+}
+
+.choice:hover img {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,.4);
+}
+
+.choice-title {
+    display: block;
+    margin-top: 12px;
+    font-size: clamp(13px, 1.8vw, 19px);
+    line-height: 1.3;
+    font-weight: bold;
+}
+
+/* ===== NÚT TIẾP TỤC VÀ QUAY LẠI ===== */
+
+.next-button,
+.back-button {
+    position: absolute;
+    z-index: 10000;
+    bottom: 12px;
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 240, 180, 0.65);
+    border-radius: 4px;
+    background: rgba(100, 0, 0, 0.68);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 11px;
+    font-weight: normal;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: opacity 0.2s, background 0.2s;
+}
+
+.next-button {
+    right: 12px;
+}
+
+.back-button {
+    left: 12px;
+}
+
+.next-button:hover,
+.back-button:hover {
+    opacity: 1;
+    background: rgba(100, 0, 0, 0.92);
+}
+
+/* ===== MÀN HÌNH DỰ ÁN ===== */
+
+#project {
+    background: #fff;
+}
+
+#projectFrame {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    background: #fff;
+}
+
+/* ===== MÀN HÌNH NHỎ ===== */
+
+@media (max-width: 600px) {
+    #intro {
+        padding: 12px;
+        padding-bottom: 60px;
+    }
+
+    .video-frame {
+        width: 100%;
+    }
+
+    .menu-content {
+        gap: 14px;
+        padding: 12px;
+    }
+
+    .choice {
+        width: 46%;
+    }
+
+    .choice-title {
+        font-size: 12px;
+        margin-top: 8px;
+    }
+
+    .next-button,
+    .back-button {
+        bottom: 8px;
+        padding: 5px 8px;
+        font-size: 10px;
+    }
+
+    .next-button {
+        right: 8px;
+    }
+
+    .back-button {
+        left: 8px;
+    }
+}
+
+@media (max-height: 450px) {
+    .menu-content {
+        gap: 20px;
+    }
+
+    .choice {
+        width: auto;
+        max-width: 220px;
+    }
+
+    .choice img {
+        height: min(48vh, 190px);
+        aspect-ratio: 1 / 1;
+    }
+
+    .choice-title {
+        font-size: 12px;
+        margin-top: 6px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ===== MÀN HÌNH 1: VIDEO MỞ ĐẦU ===== -->
+
+<section
+    id="intro"
+    class="screen active"
+    onclick="handleOutsideClick(event)">
+
+    <!-- ẢNH PNG NỀN BẠN TỰ THIẾT KẾ -->
+    <img
+        class="intro-background"
+        src="nen-mo-dau.png" 
+        alt="">
+
+    <div class="video-frame">
+
+        <iframe
+            id="introVideo"
+            src="https://www.youtube.com/embed/v4mrsmTjC2A?rel=0&playsinline=1"
+            title="Video mở đầu - Hồ Gươm"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen>
+        </iframe>
+
+        <!-- HAI Ô LỰA CHỌN -->
+        <div id="menuOverlay" class="menu-overlay">
+
+            <div class="menu-shade"></div>
+
+            <div class="menu-content">
+
+                <!-- Ô 1: ĐỊA ĐIỂM LỊCH SỬ -->
+                <button
+                    class="choice"
+                    onclick="openHistory()">
+
+                    <img
+                        src="anh-lich-su.png"
+                        alt="Địa điểm lịch sử quanh Hồ Gươm">
+
+                    <span class="choice-title">
+                        Địa điểm lịch sử quanh Hồ Gươm
+                    </span>
+
+                </button>
+
+                <!-- Ô 2: PHỐI CẢNH TƯƠNG LAI -->
+                <button
+                    class="choice"
+                    onclick="openFuture()">
+
+                    <img
+                        src="anh-tuong-lai.png"
+                        alt="Phối cảnh Hồ Gươm tương lai">
+
+                    <span class="choice-title">
+                        Phối cảnh Hồ Gươm tương lai (dự kiến)
+                    </span>
+
+                </button>
+
+            </div>
+        </div>
+
+    </div>
+
+    <button
+        id="nextButton"
+        class="next-button"
+        onclick="showMenu()">
+        TIẾP TỤC
+    </button>
+
+</section>
+
+
+<!-- ===== MÀN HÌNH 2: DỰ ÁN ===== -->
+
+<section id="project" class="screen">
+
+    <iframe
+        id="projectFrame"
+        title="Nội dung trải nghiệm Hồ Gươm"
+        allow="fullscreen; autoplay; gyroscope; accelerometer"
+        allowfullscreen>
+    </iframe>
+
+    <button
+        class="back-button"
+        onclick="backToIntro()">
+        ← Quay lại
+    </button>
+
+</section>
+
+
+<script>
+const intro = document.getElementById("intro");
+const project = document.getElementById("project");
+
+const menuOverlay = document.getElementById("menuOverlay");
+const nextButton = document.getElementById("nextButton");
+
+const introVideo = document.getElementById("introVideo");
+const projectFrame = document.getElementById("projectFrame");
+
+const videoURL =
+    "https://www.youtube.com/embed/v4mrsmTjC2A?rel=0&playsinline=1";
+
+/* HIỆN HAI Ô LỰA CHỌN */
+function showMenu() {
+    menuOverlay.classList.add("active");
+    nextButton.style.display = "none";
+}
+
+/* ĐÓNG HAI Ô LỰA CHỌN */
+function closeMenu() {
+    menuOverlay.classList.remove("active");
+    nextButton.style.display = "block";
+}
+
+/*
+   BẤM BẤT KỲ ĐÂU BÊN NGOÀI HAI Ô:
+   - Vùng đen ngoài video
+   - Vùng video tối
+   - Khoảng trống giữa các ô
+   - Vùng trống quanh các ô
+*/
+function handleOutsideClick(event) {
+    if (!menuOverlay.classList.contains("active")) {
+        return;
+    }
+
+    /* Không đóng nếu người dùng bấm vào một trong hai ô */
+    if (event.target.closest(".choice")) {
+        return;
+    }
+
+    /* Không xử lý nút TIẾP TỤC tại đây */
+    if (event.target.closest(".next-button")) {
+        return;
+    }
+
+    closeMenu();
+}
+
+/* MỞ DỰ ÁN LỊCH SỬ */
+function openHistory() {
+    projectFrame.src = "index.html";
+
+    project.classList.add("active");
+    intro.classList.remove("active");
+}
+
+/* MỞ PHỐI CẢNH TƯƠNG LAI */
+function openFuture() {
+    projectFrame.src =
+        "https://shimmering-meerkat-299c1d.netlify.app/";
+
+    project.classList.add("active");
+    intro.classList.remove("active");
+}
+
+/* QUAY THẲNG VỀ VIDEO MỞ ĐẦU */
+function backToIntro() {
+    projectFrame.src = "about:blank";
+
+    menuOverlay.classList.remove("active");
+    nextButton.style.display = "block";
+
+    project.classList.remove("active");
+    intro.classList.add("active");
+
+    /* Tải lại video mở đầu */
+    introVideo.src = videoURL;
+}
+</script>
+
+</body>
+</html>
